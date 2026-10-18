@@ -1,55 +1,58 @@
-# Media conversion facade
+# Assignment 4: Media conversion facade
 
-## Introduction
+**Course:** Software Design Patterns (ShP-2216)  
+**Student:** Assemgazy Olzhas, SE-2528
 
-This project uses the Facade pattern for a simulated media conversion process. A client would otherwise need to read file metadata, choose codecs, process the bytes, normalize the result, and save an output file. `MediaConversionFacade` provides one `convert` method to coordinate those steps.
+## 1. Introduction
 
-The project supports `wav`, `mp3`, and `flac` as format labels. It uses byte-level operations to demonstrate the flow. It does not implement real audio codecs, so the output should not be treated as a playable audio file.
+This project uses the Facade pattern for a simulated media conversion process. Converting a file involves several steps: reading its metadata, selecting codecs, processing the bytes, normalizing the result, and writing an output file. A client that performs each step directly would need to know the details and their order. `MediaConversionFacade` provides one `convert` method to coordinate the process.
 
-## UML class diagram
+The example accepts `wav`, `mp3`, and `flac` as format labels. The codec operations work on byte arrays and simulate conversion steps. They do not implement real audio formats, so the resulting files are not playable audio.
 
-![alt text](UML.svg)
+## 2. UML class diagram
 
-The arrows from the Facade show which subsystem classes it coordinates. Those classes do not refer back to the Facade, so an advanced caller can use them directly.
+![Media conversion class diagram](UML.svg)
 
-## Clean Code principles
+The `Client` calls `MediaConversionFacade`. The Facade coordinates the subsystem classes shown in the diagram. Those classes do not refer back to the Facade and remain available for direct use.
 
-### 1. Names describe the work
+## 3. Clean Code principles
 
-Names such as `MetadataReader`, `AudioMixer`, and `convert` give the caller a useful idea of each operation.
+### 3.1 Meaningful names
+
+Names such as `MetadataReader`, `AudioMixer`, and `normalize` describe what each part does.
 
 ```java
-public String convert(Path source, String targetFormat) throws IOException
+byte[] normalized = audioMixer.normalize(converted);
 ```
 
-### 2. Each class has a focused responsibility
+### 3.2 Single responsibility
 
-`AudioMixer` normalizes the byte values. It does not read files or choose codecs.
+`AudioMixer` normalizes byte values. It does not read a file or choose a codec.
 
 ```java
 public byte[] normalize(byte[] data)
 ```
 
-### 3. The Facade coordinates the steps
+### 3.3 A small Facade API
 
-The public API accepts a source path and target format. The caller does not need to pass codec or metadata objects.
+The public method accepts only the source path and target format. The caller does not need to build an `AudioTrack` or select codecs.
 
 ```java
-facade.convert(Path.of(args[0]), args[1]);
+public String convert(Path source, String targetFormat) throws IOException
 ```
 
-### 4. Subsystem details stay behind the Facade
+### 3.4 Encapsulation and independent subsystem classes
 
-The Client creates and calls only the Facade. The Facade owns the subsystem objects it needs for conversion.
+The Facade keeps its subsystem objects private. Subsystem classes have no reference to the Facade, so advanced clients can also call them directly.
 
 ```java
 private final MetadataReader metadataReader = new MetadataReader();
 private final CodecFactory codecFactory = new CodecFactory();
 ```
 
-### 5. Invalid input produces an error
+### 3.5 Error handling
 
-`MetadataReader` reports a missing source file with an `IOException` and a missing extension with an `IllegalArgumentException`. The Client prints the failure message.
+`MetadataReader` reports a missing source file with an `IOException`. The Client catches conversion errors and prints a message.
 
 ```java
 if (!Files.isRegularFile(file)) {
@@ -57,8 +60,8 @@ if (!Files.isRegularFile(file)) {
 }
 ```
 
-## Conclusion
+## 4. Conclusion
 
-The Facade hides the order of metadata reading, codec selection, byte adjustment, normalization, and file writing. The subsystem classes remain separate and can be called directly when a client needs lower-level control. This example demonstrates the coordination pattern with simulated byte processing rather than real media encoding.
+The Facade hides the order of metadata reading, codec selection, byte adjustment, normalization, and file writing. It gives the Client one method for the full process. The subsystem classes remain separate and can be used directly when lower-level control is needed.
 
-GitHub repository: add the repository URL after a remote is configured.
+**GitHub repository:** [Link to repo](https://github.com/iuve1n/SDP_Assignment4.git).
